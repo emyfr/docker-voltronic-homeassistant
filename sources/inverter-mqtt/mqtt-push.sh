@@ -55,6 +55,3 @@ if [ $PORT_IN_USE = 0]
     pushMQTTData "$key" "${INVERTER_DATA[$key]}"
   done
 if
-
-
-
