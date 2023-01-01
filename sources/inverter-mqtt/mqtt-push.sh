@@ -44,10 +44,17 @@ pushInfluxData () {
 ###############################################################################
 # Inverter modes: 1 = Power_On, 2 = Standby, 3 = Line, 4 = Battery, 5 = Fault, 6 = Power_Saving, 7 = Unknown
 
-POLLER_JSON=$(timeout 10 /opt/inverter-cli/bin/inverter_poller -1)
-BASH_HASH=$(echo $POLLER_JSON | jq -r '. | to_entries | .[] | @sh "[\(.key)]=\(.value)"')
-eval "declare -A INVERTER_DATA=($BASH_HASH)"
+if [ $PORT_IN_USE = 0]
+  export PORT_IN_USE=1
+  POLLER_JSON=$(timeout 10 /opt/inverter-cli/bin/inverter_poller -1)
+  export PORT_IN_USE=0
+  BASH_HASH=$(echo $POLLER_JSON | jq -r '. | to_entries | .[] | @sh "[\(.key)]=\(.value)"')
+  eval "declare -A INVERTER_DATA=($BASH_HASH)"
 
-for key in "${!INVERTER_DATA[@]}"; do
+  for key in "${!INVERTER_DATA[@]}"; do
     pushMQTTData "$key" "${INVERTER_DATA[$key]}"
-done
+  done
+if
+
+
+

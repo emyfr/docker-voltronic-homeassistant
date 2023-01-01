@@ -19,11 +19,20 @@ function reply () {
 subscribe | while read rawcmd; do
     echo "[$(date +%F+%T)] Incoming request send: [$rawcmd] to inverter."
     for attempt in $(seq 3); do
-	REPLY=$(/opt/inverter-cli/bin/inverter_poller -r $rawcmd)
-	echo "[$(date +%F+%T)] $REPLY"
-        reply "[$rawcmd] [Attempt $attempt] [$REPLY]"
-	[ "$REPLY" = "Reply:  ACK" ] && break
-	[ "$attempt" != "3" ] && sleep 1
+	
+      while [ $PORT_IN_USE = 0]
+      do
+        echo "try write to inverter [$(date +%F+%T)] $rawcmd"
+        export PORT_IN_USE=1
+        REPLY=$(/opt/inverter-cli/bin/inverter_poller -r $rawcmd)
+        export PORT_IN_USE=0
+        break
+      done
+    
+      echo "[$(date +%F+%T)] $REPLY"
+      reply "[$rawcmd] [Attempt $attempt] [$REPLY]"
+	  [ "$REPLY" = "Reply:  ACK" ] && break
+	  [ "$attempt" != "3" ] && sleep 1
     done
 done
 

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export PORT_IN_USE=0
+
 UNBUFFER='stdbuf -i0 -oL -eL'
 
 # stty -F /dev/ttyUSB0 2400 raw
