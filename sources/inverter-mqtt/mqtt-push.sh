@@ -54,4 +54,4 @@ if [ $PORT_IN_USE = 0]
   for key in "${!INVERTER_DATA[@]}"; do
     pushMQTTData "$key" "${INVERTER_DATA[$key]}"
   done
-if
+fi
