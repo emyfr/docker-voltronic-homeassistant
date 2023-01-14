@@ -7,6 +7,7 @@ MQTT_DEVICENAME=`cat /etc/inverter/mqtt.json | jq '.devicename' -r`
 MQTT_SERIAL=`cat /etc/inverter/mqtt.json | jq '.serial' -r`
 MQTT_USERNAME=`cat /etc/inverter/mqtt.json | jq '.username' -r`
 MQTT_PASSWORD=`cat /etc/inverter/mqtt.json | jq '.password' -r`
+LOCK_FILE=`cat /etc/inverter/mqtt.json | jq '.lockfile' -r`
 
 function subscribe () {
     mosquitto_sub -h $MQTT_SERVER -p $MQTT_PORT -u "$MQTT_USERNAME" -P "$MQTT_PASSWORD" -i ""$MQTT_DEVICENAME"_"$MQTT_SERIAL"" -t "$MQTT_TOPIC/sensor/""$MQTT_DEVICENAME"_"$MQTT_SERIAL""/COMMANDS" -q 1
@@ -17,28 +18,20 @@ function reply () {
 }
 
 subscribe | while read rawcmd; do
-    echo "[$(date +%F+%T)] Incoming request send: [$rawcmd] to inverter."
-    for attempt in $(seq 3); do
-	
-      while [ $PORT_IN_USE = 0]
-      do
-        echo "try write to inverter [$(date +%F+%T)] $rawcmd"
-        export PORT_IN_USE=1
-        REPLY=$(/opt/inverter-cli/bin/inverter_poller -r $rawcmd)
-        export PORT_IN_USE=0
-        break
-      done
-    
-      echo "[$(date +%F+%T)] $REPLY"
-      reply "[$rawcmd] [Attempt $attempt] [$REPLY]"
+
+  echo "[$(date +%F+%T)] try send incoming request: [$rawcmd] to inverter."
+  for attempt in $(seq 3); do
+    while [ ! -f "$LOCK_FILE" ]
+    do
+      echo "--| try write to inverter [$(date +%F+%T)] $rawcmd"
+      echo "$(date +%s) $0" > $LOCK_FILE
+      REPLY=$(/opt/inverter-cli/bin/inverter_poller -r $rawcmd)
+      rm $LOCK_FILE
+      break
+    done    
+    echo "[$(date +%F+%T)] $REPLY"
+    reply "[$rawcmd] [Attempt $attempt] [$REPLY]"
 	  [ "$REPLY" = "Reply:  ACK" ] && break
-	  [ "$attempt" != "3" ] && sleep 1
-    done
+	  [ "$attempt" != "3" ] && sleep 3
+  done
 done
-
-
-# while read rawcmd;
-# do
-#     echo "Incoming request send: [$rawcmd] to inverter."
-#     /opt/inverter-cli/bin/inverter_poller -r $rawcmd;
-# done < <(mosquitto_sub -h $MQTT_SERVER -p $MQTT_PORT -u "$MQTT_USERNAME" -P "$MQTT_PASSWORD" -i ""$MQTT_DEVICENAME"_"$MQTT_SERIAL"" -t "$MQTT_TOPIC/sensor/""$MQTT_DEVICENAME"_"$MQTT_SERIAL""/COMMANDS" -q 1)

@@ -1,13 +1,15 @@
 #!/bin/bash
-INFLUX_ENABLED=`cat /etc/inverter/mqtt.json | jq '.influx.enabled' -r`
 
+INFLUX_ENABLED=`cat /etc/inverter/mqtt.json | jq '.influx.enabled' -r`
 MQTT_SERVER=`cat /etc/inverter/mqtt.json | jq '.server' -r`
 MQTT_PORT=`cat /etc/inverter/mqtt.json | jq '.port' -r`
 MQTT_TOPIC=`cat /etc/inverter/mqtt.json | jq '.topic' -r`
+
 MQTT_DEVICENAME=`cat /etc/inverter/mqtt.json | jq '.devicename' -r`
 MQTT_SERIAL=`cat /etc/inverter/mqtt.json | jq '.serial' -r`
 MQTT_USERNAME=`cat /etc/inverter/mqtt.json | jq '.username' -r`
 MQTT_PASSWORD=`cat /etc/inverter/mqtt.json | jq '.password' -r`
+LOCK_FILE=`cat /etc/inverter/mqtt.json | jq '.lockfile' -r`
 
 
 if [[ $INFLUX_ENABLED == "true" ]] ; then
@@ -44,14 +46,17 @@ pushInfluxData () {
 ###############################################################################
 # Inverter modes: 1 = Power_On, 2 = Standby, 3 = Line, 4 = Battery, 5 = Fault, 6 = Power_Saving, 7 = Unknown
 
-if [ $PORT_IN_USE = 0]
-  export PORT_IN_USE=1
+echo "try Polling inverter at: [$(date +%F+%T)]"
+if [ ! -f "$LOCK_FILE" ]; then
+  echo "$(date +%s) $0" > $LOCK_FILE
   POLLER_JSON=$(timeout 10 /opt/inverter-cli/bin/inverter_poller -1)
-  export PORT_IN_USE=0
+  rm $LOCK_FILE
   BASH_HASH=$(echo $POLLER_JSON | jq -r '. | to_entries | .[] | @sh "[\(.key)]=\(.value)"')
   eval "declare -A INVERTER_DATA=($BASH_HASH)"
 
   for key in "${!INVERTER_DATA[@]}"; do
     pushMQTTData "$key" "${INVERTER_DATA[$key]}"
   done
+else
+  echo "Lock present [$(date +%F+%T)]"
 fi
