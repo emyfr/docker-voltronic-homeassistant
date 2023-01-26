@@ -10,12 +10,4 @@ UNBUFFER='stdbuf -i0 -oL -eL'
 # broker using persistence (default HA config)
 $UNBUFFER /opt/inverter-mqtt/mqtt-init.sh
 
-# broker not using persistence
-#(while :; do $UNBUFFER /opt/inverter-mqtt/mqtt-init.sh; sleep 300; done) &
-
-# Run the MQTT subscriber process in the background (so that way we can change
-# the configuration on the inverter from home assistant).
-$UNBUFFER /opt/inverter-mqtt/mqtt-subscriber.sh &
-
-# Push poller updates every 30 seconds.
-while :; do $UNBUFFER /opt/inverter-mqtt/mqtt-push.sh; sleep 7; done
+python3 /opt/inverter-py/main.py

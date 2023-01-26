@@ -13,7 +13,7 @@ services:
     privileged: true
     restart: always
     volumes:
-        - ./sources/inverter-py:/opt/inverter-py
+        #- ./sources/inverter-py:/opt/inverter-py
         - ./config/:/etc/inverter/
     tmpfs:
       - /vol-lock 
