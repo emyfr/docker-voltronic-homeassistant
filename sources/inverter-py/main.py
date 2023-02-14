@@ -20,7 +20,7 @@ WRITE_CMD = "/opt/inverter-cli/bin/inverter_poller -r"
 
 ## Read and Write to Voltronic via Serial Port or USB, check if resorce is busy with Lock() system
 class Voltronic:
-    AllowedCmd = ['POP00','MUCHGC010','MUCHGC020','MUCHGC030','MUCHGC040','MUCHGC050']    
+    AllowedCmd = ['POP00','POP01','POP02','PCP00','PCP01','PCP02','PCP03','MUCHGC010','MUCHGC020','MUCHGC030','MUCHGC040','MUCHGC050']    
     InvPoller = shlex.split(POLLER_CMD)
     
     def __init__(self) -> None:
@@ -70,6 +70,9 @@ class Voltronic:
                   
                   if invResponse == "ACK":
                     print("Write success!!")
+                    t = time.localtime()
+                    payload = param + ' ' + time.strftime("%H:%M:%S %Z", t)
+                    c.publish(pub_topic+'/Last_write_success',payload)                    
                   else:
                     print("Write Failed, retry in 2 sec.")
                   time.sleep(2)
@@ -97,7 +100,7 @@ def mqtt_message(client, userdata, msg):
 
 def mqtt_pubblish(client,userdata,mid):
     t = time.localtime()
-    current_time = time.strftime("%H:%M:%S %Z", t)    
+    current_time = time.strftime("%H:%M:%S %Z", t)
     print("data sent to MQTT",current_time)
 
 
@@ -107,8 +110,7 @@ if __name__ == '__main__':
     c.on_message = mqtt_message
     c.on_publish = mqtt_pubblish
     print("Pubblish to topic: " + pub_topic)
-    
-    
+        
     c.username_pw_set(conf['username'], conf['password'])
     c.connect(conf['server'], 1883)
     time.sleep(1)
@@ -116,10 +118,37 @@ if __name__ == '__main__':
     
     inverter = Voltronic()
 
-    while True:        
+    while True:
+        # Reset variabili per calcolare grid_watts
+        chargeCurrent = 0
+        batteryVoltage = 0
+        loadWatt = 0
+        inverterMode = 0
+        
         res_json = inverter.read()
         mqtt_data = json.loads(res_json)
         for key,value in mqtt_data.items():
             topic = pub_topic+'/'+key
             c.publish(topic, value)
+            if key == 'Battery_charge_current':
+                chargeCurrent = value
+            if key == 'Battery_voltage':
+                batteryVoltage = value
+            if key == 'Load_watt':
+                loadWatt = value
+            if key == 'Inverter_mode':
+                inverterMode = value
+        
+        if inverterMode == 3:
+            topic = pub_topic + '/AC_grid_watt'
+            value = (loadWatt + ( chargeCurrent * batteryVoltage )) / 0.93
+            c.publish(topic, value)
+        else:
+            topic = pub_topic + '/AC_grid_watt'
+            value = 0
+            c.publish(topic, value)
+            
+        t = time.localtime()
+        current_time = time.strftime("%H:%M:%S %Z", t)
+        c.publish(pub_topic+'/Last_inverter_update',current_time)
         time.sleep(5)

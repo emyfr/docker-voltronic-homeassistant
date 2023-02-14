@@ -11,6 +11,8 @@ services:
       dockerfile: Dockerfile.dev
     container_name: voltronic-mqtt
     privileged: true
+    environment:
+        TZ: "Europe/Madrid"
     restart: always
     volumes:
         #- ./sources/inverter-py:/opt/inverter-py

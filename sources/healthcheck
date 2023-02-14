@@ -1,20 +1,8 @@
 #!/bin/bash
 
-## check if there is a "locked" lock file
-LOCK_FILE=`cat /etc/inverter/mqtt.json | jq '.lockfile' -r`
+PROC=`ps cax | grep -E "python" | awk '{print $5}' | sort -u | wc -l`
 
-if [ -f "$LOCK_FILE" ]; then
-  NOW=$(date +%s)
-  LOCK_DATE=$(cat $LOCK_FILE|cut -f 1 -d ' ')
-  if [ $(($NOW-$LOCK_DATE)) -gt 60 ]; then
-    rm $LOCK_FILE
-    exit 98
-  fi
-fi
-
-PROC=`ps cax | grep -E "mqtt-subscriber|mosquitto_sub" | awk '{print $5}' | sort -u | wc -l`
-
-if [ "$PROC" -eq "2" ] ; then
+if [ "$PROC" -eq "1" ] ; then
     exit 0
 else
     exit 99
