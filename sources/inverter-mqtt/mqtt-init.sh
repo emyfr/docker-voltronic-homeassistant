@@ -103,6 +103,7 @@ registerInverterRawCMD () {
 registerModeTopic "AC_charge_on" "" "power" "None" "AC charge on"
 registerTopic "AC_grid_frequency" "Hz" "current-ac" "frequency" "AC grid frequency"
 registerTopic "AC_grid_voltage" "V" "power-plug" "voltage" "AC grid voltage"
+registerTopic "AC_grid_watt" "W" "chart-bell-curve" "power" "AC grid watt calc"
 registerTopic "AC_out_frequency" "Hz" "current-ac" "frequency" "AC out frequency"
 registerTopic "AC_out_voltage" "V" "power-plug" "voltage" "AC out voltage"
 registerTopic "Battery_bulk_voltage" "V" "current-dc" "voltage" "Battery bulk voltage"
@@ -139,6 +140,8 @@ registerModeTopic "SCC_charge_on" "" "power" "None" "SCC charge on"
 registerTopic "SCC_voltage" "V" "current-dc" "voltage" "SCC voltage"
 registerModeTopic "Switch_On" "" "power" "None" "Switch On"
 registerModeTopic "Warnings" "" "power" "None" "Warnings"
+registerModeTopic "Last_inverter_update" "" "clock-digital" "None" "Last Update"
+registerModeTopic "Last_write_success" "" "clock-digital" "None" "Last Write Success"
 
 # Add in a separate topic so we can send raw commands from assistant back to the inverter via MQTT (such as changing power modes etc)...
 registerInverterRawCMD

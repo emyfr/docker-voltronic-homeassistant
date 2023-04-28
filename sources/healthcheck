@@ -1,8 +1,8 @@
 #!/bin/bash
 
-PROC=`ps cax | grep -E "mqtt-subscriber|mosquitto_sub" | awk '{print $5}' | sort -u | wc -l`
+PROC=`ps cax | grep -E "python" | awk '{print $5}' | sort -u | wc -l`
 
-if [ "$PROC" -eq "2" ] ; then
+if [ "$PROC" -eq "1" ] ; then
     exit 0
 else
     exit 99
