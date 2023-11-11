@@ -43,18 +43,17 @@ class Voltronic:
           self.lock.release()
 
     
-    def write(self, param):        
-        if param in Voltronic.AllowedCmd:                        
+    def write(self, param):
+        if param in Voltronic.AllowedCmd:
             wrCOMMAND = shlex.split(WRITE_CMD)
             wrCOMMAND.append(param)
             
-            #print("inviaraw ->" + str(Voltronic.InvRawCmd))
             print("wrcommand -> " + str(wrCOMMAND))
             
             self.lock.acquire() 
             try:
                 attemp = 0
-                invResponse = '---'                
+                invResponse = '---'
                 while invResponse != 'ACK' and attemp < 5:
                   attemp +=1 
                   print("Try WRITE to INVERTER n. ", attemp)
@@ -71,8 +70,11 @@ class Voltronic:
                   if invResponse == "ACK":
                     print("Write success!!")
                     t = time.localtime()
-                    payload = param + ' ' + time.strftime("%H:%M:%S %Z", t)
-                    c.publish(pub_topic+'/Last_write_success',payload)                    
+                    
+                    ## formatto l'orario in ISO8601 (https://it.wikipedia.org/wiki/ISO_8601)
+                    wrTime = time.strftime("%Y-%m-%dT%H:%M:%S%z", t)
+                    c.publish(pub_topic+'/Last_write_success', wrTime)
+                    c.publish(pub_topic+'/Last_write_command', param)
                   else:
                     print("Write Failed, retry in 2 sec.")
                   time.sleep(2)
@@ -149,6 +151,7 @@ if __name__ == '__main__':
             c.publish(topic, value)
             
         t = time.localtime()
-        current_time = time.strftime("%H:%M:%S %Z", t)
+        ## formatto l'orario in ISO8601 (https://it.wikipedia.org/wiki/ISO_8601)
+        current_time = time.strftime("%Y-%m-%dT%H:%M:%S%z", t)
         c.publish(pub_topic+'/Last_inverter_update',current_time)
         time.sleep(5)

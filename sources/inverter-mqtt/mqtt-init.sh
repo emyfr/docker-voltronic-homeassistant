@@ -140,8 +140,14 @@ registerModeTopic "SCC_charge_on" "" "power" "None" "SCC charge on"
 registerTopic "SCC_voltage" "V" "current-dc" "voltage" "SCC voltage"
 registerModeTopic "Switch_On" "" "power" "None" "Switch On"
 registerModeTopic "Warnings" "" "power" "None" "Warnings"
-registerModeTopic "Last_inverter_update" "" "clock-digital" "None" "Last Update"
-registerModeTopic "Last_write_success" "" "clock-digital" "None" "Last Write Success"
+
+### Register MQTT Topic for time
+#registerModeTopic "Last_inverter_update" "" "clock-digital" "None" "Last Update"
+#registerModeTopic "Last_write_success" "" "clock-digital" "None" "Last Write Success"
+registerTopic "Last_inverter_update" "" "clock-digital" "timestamp" "Last Update"
+
+registerTopic "Last_write_success" "" "clock-digital" "timestamp" "Last Inverter wr ok"
+registerModeTopic "Last_write_command" "" "format-text-rotation-none" "None" "Last Inverter wr cmd"
 
 # Add in a separate topic so we can send raw commands from assistant back to the inverter via MQTT (such as changing power modes etc)...
 registerInverterRawCMD
