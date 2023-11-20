@@ -24,6 +24,10 @@
 #include <algorithm>
 #include <fstream>
 
+/* emyfr 20231117 */
+#include <fcntl.h>    /* For O_RDWR */
+#include <unistd.h>   /* For open(), creat() */
+
 
 bool debugFlag = false;
 bool runOnce = false;

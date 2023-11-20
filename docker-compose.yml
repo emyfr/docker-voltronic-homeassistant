@@ -4,7 +4,7 @@ volumes:
   vol-lock:
 
 services:
-  voltronic-mqtt:    
+  voltronic-mqtt:
     image: bushrangers/ha-voltronic-mqtt    
     build:
       context: .
@@ -16,6 +16,7 @@ services:
     restart: always
     volumes:
         #- ./sources/inverter-py:/opt/inverter-py
+        #- ./sources/inverter-cli:/opt/inverter-cli
         - ./config/:/etc/inverter/
     tmpfs:
       - /vol-lock 
